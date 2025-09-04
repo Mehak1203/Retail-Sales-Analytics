@@ -1,0 +1,33 @@
+import React from 'react';
+import { BarChart3, Users, TrendingUp } from 'lucide-react';
+
+export default function Header() {
+  return (
+    <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">RetailInsights</h1>
+              <p className="text-sm text-gray-500">Sales Analytics & Customer Segmentation</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 rounded-lg">
+            <TrendingUp className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium text-green-700">Live Data</span>
+          </div>
+          <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 rounded-lg">
+            <Users className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">500 Customers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
