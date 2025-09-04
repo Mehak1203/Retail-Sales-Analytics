@@ -1,0 +1,85 @@
+import React from 'react';
+import { Calendar, Filter, Download } from 'lucide-react';
+
+interface FilterPanelProps {
+  startDate: string;
+  endDate: string;
+  selectedCategory: string;
+  selectedSegment: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  onCategoryChange: (category: string) => void;
+  onSegmentChange: (segment: string) => void;
+  onExport: () => void;
+}
+
+const categories = ['All Categories', 'Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books', 'Beauty', 'Toys', 'Automotive'];
+const segments = ['All Segments', 'Champions', 'Loyal Customers', 'Potential Loyalists', 'New Customers', 'At Risk', 'Cannot Lose Them', 'Hibernating'];
+
+export default function FilterPanel({
+  startDate,
+  endDate,
+  selectedCategory,
+  selectedSegment,
+  onStartDateChange,
+  onEndDateChange,
+  onCategoryChange,
+  onSegmentChange,
+  onExport,
+}: FilterPanelProps) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center space-x-2">
+          <Filter className="w-5 h-5 text-gray-500" />
+          <span className="font-medium text-gray-700">Filters</span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-4 h-4 text-gray-500" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => onStartDateChange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+          <span className="text-gray-500">to</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => onEndDateChange(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          />
+        </div>
+
+        <select
+          value={selectedCategory}
+          onChange={(e) => onCategoryChange(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
+
+        <select
+          value={selectedSegment}
+          onChange={(e) => onSegmentChange(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        >
+          {segments.map((segment) => (
+            <option key={segment} value={segment}>{segment}</option>
+          ))}
+        </select>
+
+        <button
+          onClick={onExport}
+          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm"
+        >
+          <Download className="w-4 h-4" />
+          <span>Export</span>
+        </button>
+      </div>
+    </div>
+  );
+}
