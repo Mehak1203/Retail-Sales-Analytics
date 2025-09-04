@@ -1,0 +1,61 @@
+import { SalesData, Customer } from '../types/analytics';
+
+export const generateMonthlySalesData = (salesData: SalesData[]) => {
+  const monthlyData: { [key: string]: number } = {};
+  
+  salesData.forEach((sale) => {
+    const month = new Date(sale.orderDate).toLocaleDateString('en-US', { month: 'short' });
+    monthlyData[month] = (monthlyData[month] || 0) + sale.amount;
+  });
+
+  return Object.entries(monthlyData).map(([name, value]) => ({ name, value }));
+};
+
+export const generateCustomerValueDistribution = (customers: Customer[]) => {
+  const ranges = [
+    { name: '$0-100', min: 0, max: 100 },
+    { name: '$101-500', min: 101, max: 500 },
+    { name: '$501-1000', min: 501, max: 1000 },
+    { name: '$1001-2000', min: 1001, max: 2000 },
+    { name: '$2000+', min: 2001, max: Infinity },
+  ];
+
+  return ranges.map((range) => ({
+    name: range.name,
+    value: customers.filter(c => c.totalSpent >= range.min && c.totalSpent <= range.max).length,
+  }));
+};
+
+export const calculateCustomerLifetimeValue = (customer: Customer, salesData: SalesData[]) => {
+  const customerOrders = salesData.filter(sale => sale.customerId === customer.id);
+  const totalSpent = customerOrders.reduce((sum, order) => sum + order.amount, 0);
+  const daysSinceFirst = Math.floor((new Date().getTime() - new Date(customer.firstOrderDate).getTime()) / (1000 * 3600 * 24));
+  const avgOrdersPerMonth = (customerOrders.length / daysSinceFirst) * 30;
+  
+  return {
+    totalSpent,
+    averageOrderValue: totalSpent / customerOrders.length || 0,
+    orderFrequency: avgOrdersPerMonth,
+    predictedLTV: totalSpent * 1.5, // Simple prediction model
+  };
+};
+
+export const exportToCSV = (data: any[], filename: string) => {
+  if (data.length === 0) return;
+  
+  const headers = Object.keys(data[0]);
+  const csvContent = [
+    headers.join(','),
+    ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+  ].join('\n');
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
