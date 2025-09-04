@@ -1,0 +1,116 @@
+import { useState, useMemo } from 'react';
+import { mockCustomers, mockSalesData, customerSegments } from '../data/mockData';
+import { Customer, SalesData, AnalyticsMetrics } from '../types/analytics';
+
+export default function useAnalytics() {
+  const [startDate, setStartDate] = useState('2024-01-01');
+  const [endDate, setEndDate] = useState('2024-12-31');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedSegment, setSelectedSegment] = useState('All Segments');
+
+  const filteredSalesData = useMemo(() => {
+    return mockSalesData.filter((sale) => {
+      const saleDate = new Date(sale.orderDate);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      const dateMatch = saleDate >= start && saleDate <= end;
+      const categoryMatch = selectedCategory === 'All Categories' || sale.productCategory === selectedCategory;
+      
+      let segmentMatch = true;
+      if (selectedSegment !== 'All Segments') {
+        const customer = mockCustomers.find(c => c.id === sale.customerId);
+        segmentMatch = customer?.segment.name === selectedSegment;
+      }
+      
+      return dateMatch && categoryMatch && segmentMatch;
+    });
+  }, [startDate, endDate, selectedCategory, selectedSegment]);
+
+  const filteredCustomers = useMemo(() => {
+    return mockCustomers.filter((customer) => {
+      const segmentMatch = selectedSegment === 'All Segments' || customer.segment.name === selectedSegment;
+      
+      // Check if customer has orders in the date range
+      const hasOrdersInRange = filteredSalesData.some(sale => sale.customerId === customer.id);
+      
+      return segmentMatch && (selectedCategory === 'All Categories' || hasOrdersInRange);
+    });
+  }, [selectedSegment, selectedCategory, filteredSalesData]);
+
+  const analytics = useMemo(() => {
+    const totalRevenue = filteredSalesData.reduce((sum, sale) => sum + sale.amount, 0);
+    const totalOrders = filteredSalesData.length;
+    const totalCustomers = new Set(filteredSalesData.map(sale => sale.customerId)).size;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Mock growth calculations (would be real calculations in production)
+    const revenueGrowth = Math.random() * 20 - 10; // -10% to +10%
+    const customerGrowth = Math.random() * 15 - 5; // -5% to +10%
+
+    return {
+      totalRevenue,
+      totalCustomers,
+      averageOrderValue,
+      totalOrders,
+      revenueGrowth,
+      customerGrowth,
+    };
+  }, [filteredSalesData]);
+
+  const salesTrendData = useMemo(() => {
+    const monthlyData: { [key: string]: number } = {};
+    
+    filteredSalesData.forEach((sale) => {
+      const month = new Date(sale.orderDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData[month] = (monthlyData[month] || 0) + sale.amount;
+    });
+
+    return Object.entries(monthlyData)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+  }, [filteredSalesData]);
+
+  const categoryData = useMemo(() => {
+    const categoryTotals: { [key: string]: number } = {};
+    
+    filteredSalesData.forEach((sale) => {
+      categoryTotals[sale.productCategory] = (categoryTotals[sale.productCategory] || 0) + sale.amount;
+    });
+
+    return Object.entries(categoryTotals)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredSalesData]);
+
+  const segmentData = useMemo(() => {
+    const segmentCounts: { [key: string]: number } = {};
+    
+    filteredCustomers.forEach((customer) => {
+      segmentCounts[customer.segment.name] = (segmentCounts[customer.segment.name] || 0) + 1;
+    });
+
+    return customerSegments.map((segment) => ({
+      name: segment.name,
+      value: segmentCounts[segment.name] || 0,
+      color: segment.color,
+    }));
+  }, [filteredCustomers]);
+
+  return {
+    startDate,
+    endDate,
+    selectedCategory,
+    selectedSegment,
+    setStartDate,
+    setEndDate,
+    setSelectedCategory,
+    setSelectedSegment,
+    analytics,
+    salesTrendData,
+    categoryData,
+    segmentData,
+    filteredCustomers,
+    filteredSalesData,
+  };
+}
