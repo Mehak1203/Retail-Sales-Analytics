@@ -1,0 +1,91 @@
+import { Customer, SalesData, CustomerSegment } from '../types/analytics';
+
+export const customerSegments: CustomerSegment[] = [
+  { name: 'Champions', color: '#10b981', description: 'High value, frequent buyers' },
+  { name: 'Loyal Customers', color: '#3b82f6', description: 'Regular, consistent buyers' },
+  { name: 'Potential Loyalists', color: '#8b5cf6', description: 'Recent buyers with potential' },
+  { name: 'New Customers', color: '#06b6d4', description: 'Recent first-time buyers' },
+  { name: 'At Risk', color: '#f59e0b', description: 'Declining engagement' },
+  { name: 'Cannot Lose Them', color: '#ef4444', description: 'High value but declining' },
+  { name: 'Hibernating', color: '#6b7280', description: 'Low activity recently' },
+];
+
+// Generate mock customers
+export const mockCustomers: Customer[] = Array.from({ length: 500 }, (_, i) => {
+  const firstOrderDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
+  const daysSinceFirst = Math.floor((new Date().getTime() - firstOrderDate.getTime()) / (1000 * 3600 * 24));
+  const lastOrderDaysAgo = Math.floor(Math.random() * daysSinceFirst);
+  const lastOrderDate = new Date(Date.now() - lastOrderDaysAgo * 24 * 60 * 60 * 1000);
+  
+  const orderCount = Math.floor(Math.random() * 20) + 1;
+  const totalSpent = Math.floor(Math.random() * 5000) + 50;
+  
+  // Simple RFM segmentation logic
+  const recency = lastOrderDaysAgo;
+  const frequency = orderCount;
+  const monetary = totalSpent;
+  
+  let segment = customerSegments[6]; // Default to hibernating
+  
+  if (recency <= 30 && frequency >= 10 && monetary >= 1000) {
+    segment = customerSegments[0]; // Champions
+  } else if (recency <= 60 && frequency >= 5 && monetary >= 500) {
+    segment = customerSegments[1]; // Loyal Customers
+  } else if (recency <= 90 && frequency >= 3) {
+    segment = customerSegments[2]; // Potential Loyalists
+  } else if (recency <= 30 && frequency <= 2) {
+    segment = customerSegments[3]; // New Customers
+  } else if (recency <= 120 && monetary >= 800) {
+    segment = customerSegments[5]; // Cannot Lose Them
+  } else if (recency <= 180) {
+    segment = customerSegments[4]; // At Risk
+  }
+
+  return {
+    id: `cust-${i + 1}`,
+    name: `Customer ${i + 1}`,
+    email: `customer${i + 1}@example.com`,
+    totalSpent,
+    orderCount,
+    lastOrderDate: lastOrderDate.toISOString().split('T')[0],
+    firstOrderDate: firstOrderDate.toISOString().split('T')[0],
+    segment,
+    location: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego'][Math.floor(Math.random() * 8)],
+    age: Math.floor(Math.random() * 50) + 18,
+    gender: ['male', 'female', 'other'][Math.floor(Math.random() * 3)] as 'male' | 'female' | 'other',
+  };
+});
+
+// Generate mock sales data
+export const mockSalesData: SalesData[] = Array.from({ length: 2000 }, (_, i) => {
+  const customer = mockCustomers[Math.floor(Math.random() * mockCustomers.length)];
+  const orderDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
+  const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books', 'Beauty', 'Toys', 'Automotive'];
+  const category = categories[Math.floor(Math.random() * categories.length)];
+  
+  const products = {
+    'Electronics': ['Smartphone', 'Laptop', 'Headphones', 'Tablet', 'Smart Watch'],
+    'Clothing': ['T-Shirt', 'Jeans', 'Dress', 'Jacket', 'Shoes'],
+    'Home & Garden': ['Furniture', 'Decorations', 'Kitchen Appliances', 'Gardening Tools'],
+    'Sports': ['Running Shoes', 'Gym Equipment', 'Sports Apparel', 'Outdoor Gear'],
+    'Books': ['Fiction', 'Non-Fiction', 'Educational', 'Comics'],
+    'Beauty': ['Skincare', 'Makeup', 'Perfume', 'Hair Care'],
+    'Toys': ['Action Figures', 'Board Games', 'Educational Toys', 'Dolls'],
+    'Automotive': ['Car Accessories', 'Motor Oil', 'Tools', 'Car Care']
+  };
+  
+  const productName = products[category as keyof typeof products][Math.floor(Math.random() * products[category as keyof typeof products].length)];
+  const quantity = Math.floor(Math.random() * 5) + 1;
+  const unitPrice = Math.floor(Math.random() * 200) + 10;
+  
+  return {
+    id: `order-${i + 1}`,
+    customerId: customer.id,
+    orderDate: orderDate.toISOString().split('T')[0],
+    amount: quantity * unitPrice,
+    productCategory: category,
+    productName,
+    quantity,
+    unitPrice,
+  };
+});
