@@ -1,0 +1,46 @@
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  totalSpent: number;
+  orderCount: number;
+  lastOrderDate: string;
+  firstOrderDate: string;
+  segment: CustomerSegment;
+  location: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
+}
+
+export interface SalesData {
+  id: string;
+  customerId: string;
+  orderDate: string;
+  amount: number;
+  productCategory: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CustomerSegment {
+  name: string;
+  color: string;
+  description: string;
+}
+
+export interface AnalyticsMetrics {
+  totalRevenue: number;
+  totalCustomers: number;
+  averageOrderValue: number;
+  totalOrders: number;
+  revenueGrowth: number;
+  customerGrowth: number;
+}
+
+export interface ChartData {
+  name: string;
+  value: number;
+  date?: string;
+  category?: string;
+}
