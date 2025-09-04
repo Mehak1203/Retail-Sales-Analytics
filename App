@@ -1,0 +1,155 @@
+import React from 'react';
+import { DollarSign, Users, ShoppingCart, TrendingUp } from 'lucide-react';
+import Header from './components/Header';
+import MetricCard from './components/MetricCard';
+import SalesChart from './components/SalesChart';
+import CustomerSegmentChart from './components/CustomerSegmentChart';
+import FilterPanel from './components/FilterPanel';
+import CustomerTable from './components/CustomerTable';
+import useAnalytics from './hooks/useAnalytics';
+import { exportToCSV } from './utils/chartHelpers';
+
+function App() {
+  const {
+    startDate,
+    endDate,
+    selectedCategory,
+    selectedSegment,
+    setStartDate,
+    setEndDate,
+    setSelectedCategory,
+    setSelectedSegment,
+    analytics,
+    salesTrendData,
+    categoryData,
+    segmentData,
+    filteredCustomers,
+    filteredSalesData,
+  } = useAnalytics();
+
+  const handleExport = () => {
+    const exportData = filteredCustomers.map(customer => ({
+      Name: customer.name,
+      Email: customer.email,
+      Segment: customer.segment.name,
+      TotalSpent: customer.totalSpent,
+      OrderCount: customer.orderCount,
+      LastOrder: customer.lastOrderDate,
+      Location: customer.location,
+    }));
+    
+    exportToCSV(exportData, 'customer-analysis');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <FilterPanel
+          startDate={startDate}
+          endDate={endDate}
+          selectedCategory={selectedCategory}
+          selectedSegment={selectedSegment}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onCategoryChange={setSelectedCategory}
+          onSegmentChange={setSelectedSegment}
+          onExport={handleExport}
+        />
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <MetricCard
+            title="Total Revenue"
+            value={`$${analytics.totalRevenue.toLocaleString()}`}
+            change={analytics.revenueGrowth}
+            icon={DollarSign}
+            color="green"
+          />
+          <MetricCard
+            title="Total Customers"
+            value={analytics.totalCustomers.toString()}
+            change={analytics.customerGrowth}
+            icon={Users}
+            color="blue"
+          />
+          <MetricCard
+            title="Average Order Value"
+            value={`$${analytics.averageOrderValue.toFixed(2)}`}
+            change={5.2}
+            icon={ShoppingCart}
+            color="purple"
+          />
+          <MetricCard
+            title="Total Orders"
+            value={analytics.totalOrders.toString()}
+            change={8.1}
+            icon={TrendingUp}
+            color="orange"
+          />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <SalesChart
+            data={salesTrendData}
+            type="line"
+            color="#3b82f6"
+            title="Revenue Trend Over Time"
+          />
+          <SalesChart
+            data={categoryData}
+            type="bar"
+            color="#10b981"
+            title="Revenue by Product Category"
+          />
+        </div>
+
+        {/* Customer Segmentation Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <CustomerSegmentChart
+            data={segmentData}
+            title="Customer Segmentation Distribution"
+          />
+          
+          {/* Segment Insights */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Segment Insights</h3>
+            <div className="space-y-4">
+              {segmentData.filter(segment => segment.value > 0).map((segment) => {
+                const percentage = ((segment.value / filteredCustomers.length) * 100).toFixed(1);
+                return (
+                  <div key={segment.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: segment.color }}
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">{segment.name}</p>
+                        <p className="text-sm text-gray-500">{segment.value} customers</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{percentage}%</p>
+                      <p className="text-xs text-gray-500">of total</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Customer Table */}
+        <CustomerTable
+          customers={filteredCustomers}
+          title="Customer Analysis"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default App;
